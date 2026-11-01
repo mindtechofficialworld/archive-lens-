@@ -1,622 +1,189 @@
-require "import"
-import "android.widget.*"
-import "android.view.*"
-import "java.io.File"
-import "java.io.FileOutputStream"
-import "java.util.zip.ZipFile"
-import "java.util.ArrayList"
-import "com.androlua.*"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AccessHub – Tools, Guides and Community for Blind and Low-Vision Users</title>
+<style>
+:root{--bg:#f4f6fb;--fg:#111a33;--card:#fff;--ac:#3a37d8;--acfg:#fff;--bd:#ccd3e8;--mu:#46526f;--g1:#3a37d8;--g2:#7b3fe4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not([data-theme="contrast"]){--bg:#0d1222;--fg:#e9eefc;--card:#171f38;--ac:#8d9bff;--acfg:#0b1020;--bd:#323d60;--mu:#aab6d8;--g1:#4a47e8;--g2:#8a4ff0}}
+:root[data-theme="dark"]{--bg:#0d1222;--fg:#e9eefc;--card:#171f38;--ac:#8d9bff;--acfg:#0b1020;--bd:#323d60;--mu:#aab6d8;--g1:#4a47e8;--g2:#8a4ff0}
+:root[data-theme="contrast"]{--bg:#000;--fg:#ff0;--card:#000;--ac:#ff0;--acfg:#000;--bd:#ff0;--mu:#fff;--g1:#000;--g2:#000}
+*{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--fg);font:1rem/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.skip{position:absolute;left:-999px;top:0;background:var(--ac);color:var(--acfg);padding:.8rem 1rem;z-index:30}.skip:focus{left:0}
+.wrap{max-width:60rem;margin:auto;padding:0 1rem}
+header.top{background:var(--card);border-bottom:2px solid var(--bd)}
+.brand{display:flex;align-items:center;gap:.6rem;padding:.9rem 0 .2rem;font-size:1.35rem;font-weight:800}
+.logo{width:2.4rem;height:2.4rem;border-radius:.7rem;background:linear-gradient(135deg,var(--g1),var(--g2));display:grid;place-items:center;color:#fff;font-size:1.3rem}
+:root[data-theme="contrast"] .logo{border:2px solid #ff0;color:#ff0}
+nav ul{list-style:none;margin:0;padding:.4rem 0 .8rem;display:flex;flex-wrap:wrap;gap:.4rem}
+nav a{display:inline-flex;align-items:center;min-height:3rem;padding:.3rem .9rem;border-radius:2rem;border:2px solid transparent;color:var(--fg);text-decoration:none;font-weight:600}
+nav a[aria-current="page"]{background:var(--ac);color:var(--acfg)}
+nav a:hover{border-color:var(--ac)}
+h1{font-size:2rem;line-height:1.2;margin:0 0 .6rem}h2{font-size:1.4rem;margin:0 0 .5rem}h3{font-size:1.15rem;margin:.2rem 0}
+p{margin:.3rem 0 .9rem}.mu{color:var(--mu)}
+.hero{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;border-radius:1.4rem;padding:1.6rem 1.2rem;margin:1.2rem 0}
+:root[data-theme="contrast"] .hero{border:3px solid #ff0;color:#ff0}
+.hero p{font-size:1.1rem}
+.card{background:var(--card);border:2px solid var(--bd);border-radius:1rem;padding:1rem;margin-bottom:1rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+label{display:block;font-weight:700;margin:.7rem 0 .25rem}
+input,select,textarea,button,.btn{font:inherit;min-height:3rem}
+input,select,textarea{width:100%;color:var(--fg);background:var(--bg);border:2px solid var(--bd);border-radius:.6rem;padding:.5rem .7rem}
+textarea{min-height:8rem}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;color:var(--fg);background:var(--card);border:2px solid var(--ac);border-radius:.8rem;padding:.5rem 1.1rem;cursor:pointer;font-weight:700;text-decoration:none}
+button.p,.btn.p{background:var(--ac);color:var(--acfg)}
+.hero .btn{background:#fff;color:#2a2790;border-color:#fff}
+:root[data-theme="contrast"] .hero .btn{background:#ff0;color:#000}
+button[aria-pressed="true"]{background:var(--ac);color:var(--acfg)}
+:focus-visible{outline:4px solid var(--ac);outline-offset:3px}
+.hero :focus-visible,:root[data-theme="contrast"] :focus-visible{outline-color:#fff}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem}
+ul.grid{list-style:none;margin:.8rem 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr));gap:.7rem}
+ul.grid button{width:100%;min-height:5rem;flex-direction:column;align-items:flex-start;text-align:left;gap:.1rem}
+ul.grid small{font-weight:400;color:var(--mu)}ul.grid button[aria-pressed="true"] small{color:var(--acfg)}
+.out{margin-top:1rem;padding:.8rem;border-left:6px solid var(--ac);background:var(--bg);border-radius:.4rem;min-height:3rem;white-space:pre-wrap;word-break:break-word}
+.list{padding-left:1.2rem}.list li{margin:.4rem 0}
+.soc{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.6rem}
+.soc a{display:inline-flex;align-items:center;min-height:3rem;padding:.4rem 1rem;border:2px solid var(--ac);border-radius:2rem;color:var(--fg);font-weight:700;text-decoration:none}
+a{color:var(--ac)}
+footer{border-top:2px solid var(--bd);background:var(--card);margin-top:2rem;padding:1.2rem 0 1.6rem}
+details summary{min-height:3rem;display:flex;align-items:center;font-weight:700;cursor:pointer}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header class="top" role="banner"><div class="wrap">
+<div class="brand"><span class="logo" aria-hidden="true">◐</span><span>AccessHub</span></div>
+<nav aria-label="Main menu"><ul id="menu">
+<li><a href="#home">Home</a></li><li><a href="#tools">Tools</a></li><li><a href="#guides">Guides</a></li><li><a href="#community">Community</a></li><li><a href="#about">About</a></li><li><a href="#contact">Contact</a></li>
+</ul></nav></div></header>
 
-local appTitle = "Archive Lens"
-local developer = "Raiyan Raj"
-local dlg
-local browser
-local currentPath = "/storage/emulated/0"
-local zipFilePath = nil
+<main id="main" class="wrap" tabindex="-1">
 
--- Maximum file size limit: 2 GB (in bytes)
-local MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024 
+<section id="v-home" data-title="Home" hidden>
+<div class="hero"><h1 tabindex="-1">Technology that speaks your language.</h1>
+<p>AccessHub brings everyday tools, screen reader guides and a friendly community together in one place. Built for TalkBack and other screen readers from the first line of code.</p>
+<div class="row"><a class="btn" href="#tools">Open the tools</a><a class="btn" href="#guides">Read the guides</a></div></div>
+<h2>What you will find here</h2>
+<div class="cols">
+<article class="card"><h3>10 daily tools</h3><p>Calculator, unit converter, timer, notes, text reader and more. Every result is announced clearly.</p></article>
+<article class="card"><h3>Screen reader guides</h3><p>Simple TalkBack basics and a short list of trusted apps for blind and low-vision users.</p></article>
+<article class="card"><h3>Community</h3><p>Podcasts, forums and in-person groups where blind people share tips about assistive technology.</p></article>
+<article class="card"><h3>Make it yours</h3><p>Choose a light, dark or high contrast theme, change the text size and turn spoken results on or off.</p></article>
+</div>
+<section class="card" aria-labelledby="sh"><details><summary id="sh">Settings: personalize this site</summary>
+<label for="theme">Color theme</label>
+<select id="theme"><option value="auto">Automatic (follow phone)</option><option value="light">Light</option><option value="dark">Dark</option><option value="contrast">High contrast (black and yellow)</option></select>
+<label for="size">Text size: <span id="sv"></span> pixels</label>
+<input id="size" type="range" min="14" max="30" step="2">
+<div class="row"><button id="spk" aria-pressed="false">Spoken results: off</button></div>
+<p class="mu">If TalkBack is on, keep spoken results off. TalkBack will read each result by itself.</p></details></section>
+</section>
 
-local function showMessage(title, message, callback)
-  local d = LuaDialog()
-  d.setTitle(title)
-  d.setMessage(tostring(message))
-  d.setButton("OK", function()
-    d.dismiss()
-    if callback then callback() end
-  end)
-  d.show()
-end
+<section id="v-tools" data-title="Tools" hidden>
+<h1 tabindex="-1">Tools</h1><p class="mu">Choose a tool. Results appear below the button and are read aloud by your screen reader.</p>
+<div class="card"><label for="q">Search tools</label><input id="q" type="search" placeholder="For example: timer, password">
+<ul class="grid" id="list" aria-label="Tool list"></ul></div>
+<section id="tool" class="card" tabindex="-1"><h2>No tool selected</h2><p>Pick a tool from the list above.</p></section>
+</section>
 
-local function formatSize(size)
-  size = tonumber(size) or 0
-  if size < 1024 then
-    return size .. " bytes"
-  elseif size < 1024 * 1024 then
-    return string.format("%.2f KB", size / 1024)
-  elseif size < 1024 * 1024 * 1024 then
-    return string.format("%.2f MB", size / (1024 * 1024))
-  else
-    return string.format("%.2f GB", size / (1024 * 1024 * 1024))
-  end
-end
+<section id="v-guides" data-title="Guides" hidden>
+<h1 tabindex="-1">Guides</h1>
+<article class="card"><h2>TalkBack basics</h2><ul class="list">
+<li>Touch the screen to hear what is under your finger.</li>
+<li>Swipe right to move to the next item and swipe left to go back.</li>
+<li>Double tap anywhere to activate the item you last heard.</li>
+<li>Scroll with two fingers, swiping up or down.</li>
+<li>On many Android phones, holding both volume keys for three seconds turns TalkBack on or off.</li></ul></article>
+<article class="card"><h2>Helpful apps</h2><ul class="list">
+<li><strong>Be My Eyes</strong>: connects blind and low-vision people with sighted volunteers by video call.</li>
+<li><strong>Google Lookout</strong>: uses the camera to read text and describe things around you on Android.</li>
+<li><strong>Seeing AI</strong>: Microsoft app that reads text and describes scenes on iPhone.</li>
+<li><strong>NVDA</strong>: a free screen reader for Windows computers.</li></ul></article>
+<article class="card"><h2>Tips for accessible content</h2><ul class="list">
+<li>Use real headings, so screen reader users can jump between sections.</li>
+<li>Give every button and form field a clear text label.</li>
+<li>Never rely on color alone to give information.</li></ul></article>
+</section>
 
--- Forward declarations
-local showArchiveContents
-local openBrowser
-local showSourceChooser
+<section id="v-community" data-title="Community" hidden>
+<h1 tabindex="-1">Community</h1><p class="mu">Places where blind and low-vision people share technology tips. These links open in a new tab.</p>
+<div class="cols">
+<article class="card"><h2>Double Tap</h2><p>A daily tech podcast and community for blind and low-vision listeners.</p><a class="btn p" href="https://doubletaponair.com" target="_blank" rel="noopener">Visit Double Tap<span class="sr"> (opens in new tab)</span></a></article>
+<article class="card"><h2>AppleVis</h2><p>A community with app reviews, guides and forums for blind and low-vision users.</p><a class="btn p" href="https://www.applevis.com" target="_blank" rel="noopener">Visit AppleVis<span class="sr"> (opens in new tab)</span></a></article>
+<article class="card"><h2>Be My Eyes</h2><p>Ask a sighted volunteer for help through a live video call.</p><a class="btn p" href="https://www.bemyeyes.com" target="_blank" rel="noopener">Visit Be My Eyes<span class="sr"> (opens in new tab)</span></a></article>
+<article class="card"><h2>Lighthouse Guild: Tech Together</h2><p>A monthly in-person assistive technology gathering in New York.</p><a class="btn p" href="https://lighthouseguild.org/technology/technology-center/events-workshops/tech-together-workshop-in-person/" target="_blank" rel="noopener">Visit Lighthouse Guild<span class="sr"> (opens in new tab)</span></a></article>
+</div>
+<h2>Follow AccessHub</h2><ul class="soc" id="soc1"></ul>
+</section>
 
--- Supported extensions check
-local function isSupportedArchive(path)
-  local lower = path:lower()
-  if lower:match("%.zip$") or 
-     lower:match("%.jar$") or 
-     lower:match("%.apk$") or 
-     lower:match("%.7z$") or 
-     lower:match("%.tar$") or 
-     lower:match("%.gz$") or 
-     lower:match("%.bz2$") or 
-     lower:match("%.xz$") or 
-     lower:match("%.ar$") or 
-     lower:match("%.arj$") or 
-     lower:match("%.cpio$") or 
-     lower:match("%.rar$") or 
-     lower:match("%.rar5$") or 
-     lower:match("%.cab$") or 
-     lower:match("%.iso$") or 
-     lower:match("%.zst$") then
-    return true
-  end
-  return false
-end
+<section id="v-about" data-title="About" hidden>
+<h1 tabindex="-1">About AccessHub</h1>
+<article class="card"><p>AccessHub is an independent, volunteer-style project that wants every person to use technology with confidence, whether they use a screen reader, magnification or no assistive technology at all.</p>
+<h2>Our principles</h2><ul class="list"><li>Screen reader first: every feature works with TalkBack.</li><li>Simple forms, big buttons, clear spoken results.</li><li>Free to use. Nothing you type is sent anywhere. Settings and notes stay on your phone.</li></ul></article>
+</section>
 
--- File validation (Extension check, existence and 2GB size check)
-local function validateAndProcessArchive(path)
-  if not path then return end
-  
-  if not isSupportedArchive(path) then
-    showMessage("Not Supported", "This file extension is not supported. Please select a valid archive file.")
-    return
-  end
-  
-  local f = File(path)
-  if not f.exists() then
-    showMessage("Error", "File does not exist.")
-    return
-  end
-  
-  -- Size check (Max 2GB)
-  local fileSize = f.length()
-  if fileSize > MAX_FILE_SIZE then
-    showMessage("File Too Large", "File size exceeds the 2 GB limit. Please select a smaller file.")
-    return
-  end
-  
-  zipFilePath = path
-  showArchiveContents(zipFilePath)
-end
+<section id="v-contact" data-title="Contact" hidden>
+<h1 tabindex="-1">Contact</h1>
+<article class="card"><p>Questions, ideas for new tools, or accessibility problems? Tell us.</p>
+<div class="row"><a class="btn p" href="mailto:hello@example.com">Send an email</a></div>
+<h2 style="margin-top:1.2rem">Social media</h2><ul class="soc" id="soc2"></ul></article>
+</section>
+</main>
 
--- Dynamic Archive Information screen based on the selected file
-local function showArchiveInfo(path, callback)
-  local ok, infoText = pcall(function()
-    local f = File(path)
-    local zf = ZipFile(path)
-    local entries = zf.entries()
-    local fileCount = 0
-    local folderCount = 0
-    local totalUncompressed = 0
-    
-    while entries.hasMoreElements() do
-      local entry = entries.nextElement()
-      if entry.isDirectory() then
-        folderCount = folderCount + 1
-      else
-        fileCount = fileCount + 1
-        totalUncompressed = totalUncompressed + entry.getSize()
-      end
-    end
-    zf.close()
-    
-    local ext = path:match("^.+(%..+)$") or ".zip"
-    local info = "Format: " .. ext:upper():gsub("%.", "") .. "\n\n" ..
-                 "Archive size: " .. formatSize(f.length()) .. "\n\n" ..
-                 "Entries: " .. fileCount + folderCount .. " total (" .. fileCount .. " files, " .. folderCount .. " folders)\n\n" ..
-                 "Total uncompressed size: " .. formatSize(totalUncompressed) .. "\n\n" ..
-                 "Total compressed size: " .. formatSize(f.length()) .. "\n\n" ..
-                 "Encryption: Standard / None detected\n\n" ..
-                 "Editing: Transactional updates supported"
-    return info
-  end)
-  
-  if ok then
-    showMessage("Archive Information", infoText, callback)
-  else
-    showMessage("Archive Information", "Could not retrieve detailed information for this archive.", callback)
-  end
-end
+<footer role="contentinfo"><div class="wrap"><h2>Follow us</h2><ul class="soc" id="soc3"></ul><p class="mu" style="margin-top:1rem">© 2026 AccessHub. Made for everyone.</p></div></footer>
+<div id="live" class="sr" role="status" aria-live="polite" style="position:absolute;left:-999px"></div>
 
-showArchiveContents = function(path)
-  local ok, result = pcall(function()
-    local zf = ZipFile(path)
-    local entries = zf.entries()
-    local entriesList = {}
+<script>
+var $=function(s){return document.querySelector(s)};
+var S={theme:'auto',size:18,speak:false};
+try{Object.assign(S,JSON.parse(localStorage.getItem('ah')||'{}'))}catch(e){}
+function save(){try{localStorage.setItem('ah',JSON.stringify(S))}catch(e){}}
+function apply(){document.documentElement.dataset.theme=S.theme;document.documentElement.style.fontSize=S.size+'px';$('#theme').value=S.theme;$('#size').value=S.size;$('#sv').textContent=S.size;var b=$('#spk');b.setAttribute('aria-pressed',S.speak);b.textContent='Spoken results: '+(S.speak?'on':'off')}
+$('#theme').onchange=function(){S.theme=this.value;apply();save()};
+$('#size').oninput=function(){S.size=+this.value;apply();save()};
+$('#spk').onclick=function(){S.speak=!S.speak;apply();save();talk('Spoken results on')};
+function talk(t){if(S.speak&&window.speechSynthesis){speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-US';speechSynthesis.speak(u)}}
+function show(t){$('#out').textContent=t;talk(t)}
 
-    while entries.hasMoreElements() do
-      local entry = entries.nextElement()
-      local name = tostring(entry.getName())
-      local size = entry.getSize()
-      table.insert(entriesList, {
-        name = name,
-        isDir = entry.isDirectory(),
-        size = size,
-        selected = false
-      })
-    end
+/* Social links: replace # with your real profile addresses */
+var SOC=[['YouTube','https://www.youtube.com'],['Facebook','https://www.facebook.com'],['Instagram','https://www.instagram.com'],['X (Twitter)','https://x.com'],['Telegram','https://telegram.org'],['WhatsApp channel','https://whatsapp.com'],['GitHub','https://github.com']];
+var sh=SOC.map(function(s){return '<li><a href="'+s[1]+'" target="_blank" rel="noopener" aria-label="'+s[0]+', opens in new tab">'+s[0]+'</a></li>'}).join('');
+['soc1','soc2','soc3'].forEach(function(i){$('#'+i).innerHTML=sh});
 
-    zf.close()
+/* Views */
+var VIEWS=['home','tools','guides','community','about','contact'];
+function route(){var h=(location.hash||'#home').slice(1);if(VIEWS.indexOf(h)<0)h='home';VIEWS.forEach(function(v){$('#v-'+v).hidden=v!=h});document.querySelectorAll('#menu a').forEach(function(a){if(a.getAttribute('href')=='#'+h)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});var s=$('#v-'+h);document.title=s.dataset.title+' – AccessHub';if(route.n++){window.scrollTo(0,0);s.querySelector('h1').focus()}}
+route.n=0;window.addEventListener('hashchange',route);
 
-    if #entriesList == 0 then
-      table.insert(entriesList, {name = "Archive is empty.", isDir = false, size = 0, selected = false})
-    end
-
-    local function getDisplayItems(list)
-      local disp = {}
-      for _, item in ipairs(list) do
-        local prefix = ""
-        if item.selected then prefix = "[Selected] " end
-        if item.isDir then
-          table.insert(disp, prefix .. "Folder: " .. item.name)
-        else
-          table.insert(disp, prefix .. item.name .. " | " .. formatSize(item.size))
-        end
-      end
-      return disp
-    end
-
-    local currentList = entriesList
-    local isAllSelected = false
-    local isFiltered = false
-
-    local function openContentsDialog()
-      local displayNames = getDisplayItems(currentList)
-      local contentDialog = LuaDialog()
-      local archiveName = File(path).getName()
-      contentDialog.setTitle(archiveName)
-      contentDialog.setItems(displayNames)
-      
-      -- Back Button on file contents screen to return directly to main screen
-      contentDialog.setNeutralButton("Back", function()
-        contentDialog.dismiss()
-        if isFiltered then
-          currentList = entriesList
-          isFiltered = false
-          openContentsDialog()
-        else
-          showSourceChooser()
-        end
-      end)
-
-      local function performSearch()
-        local inputLayout = {
-          LinearLayout,
-          orientation = "vertical",
-          padding = "16dp",
-          {
-            EditText,
-            hint = "Type to search...",
-            id = "search_input",
-            layout_width = "match_parent",
-            layout_height = "wrap_content"
-          }
-        }
-        local searchDlg = LuaDialog()
-        searchDlg.setTitle("Search Entries")
-        searchDlg.setView(loadlayout(inputLayout))
-        searchDlg.setButton("Find", function()
-          local query = tostring(search_input.text):lower()
-          searchDlg.dismiss()
-          
-          if query == "" then
-            openContentsDialog()
-            return
-          end
-          
-          local filtered = {}
-          for _, item in ipairs(entriesList) do
-            if item.name:lower():find(query, 1, true) then
-              table.insert(filtered, item)
-            end
-          end
-          
-          if #filtered == 0 then
-            table.insert(filtered, {name = "No result found.", isDir = false, size = 0, selected = false})
-          end
-
-          currentList = filtered
-          isFiltered = true
-          contentDialog.dismiss()
-          openContentsDialog()
-        end)
-        searchDlg.setNeutralButton("Go Back", function()
-          searchDlg.dismiss()
-          openContentsDialog()
-        end)
-        searchDlg.show()
-      end
-
-      -- Search Button
-      contentDialog.setButton("Search", function()
-        contentDialog.dismiss()
-        performSearch()
-      end)
-
-      if isFiltered then
-        -- On search result screen, hide More Options
-        contentDialog.setButton2(nil, nil)
-      else
-        -- Normal content screen: More Options containing Sort By, Select All, Extract All, Info
-        contentDialog.setButton2("More Options", function()
-          local selectOptionText = isAllSelected and "Deselect All" or "Select All"
-          local moreDlg = LuaDialog()
-          moreDlg.setTitle("")
-          moreDlg.setItems({
-            "Sort By",
-            selectOptionText, 
-            "Extract All", 
-            "Info"
-          })
-          
-          moreDlg.onItemClick = function(ml, mv, mp, mi)
-            moreDlg.dismiss()
-            if mp == 0 then
-              -- Sort By Menu Sub-dialog
-              local sortDlg = LuaDialog()
-              sortDlg.setTitle("")
-              sortDlg.setItems({
-                "Name: A to Z",
-                "Name: Z to A",
-                "Size: Small to Large",
-                "Size: Large to Small"
-              })
-              sortDlg.onItemClick = function(sl, sv, sp, si)
-                sortDlg.dismiss()
-                if sp == 0 then
-                  table.sort(currentList, function(a, b) return string.lower(a.name) < string.lower(b.name) end)
-                elseif sp == 1 then
-                  table.sort(currentList, function(a, b) return string.lower(a.name) > string.lower(b.name) end)
-                elseif sp == 2 then
-                  table.sort(currentList, function(a, b) return a.size < b.size end)
-                elseif sp == 3 then
-                  table.sort(currentList, function(a, b) return a.size > b.size end)
-                end
-                contentDialog.dismiss()
-                openContentsDialog()
-              end
-              sortDlg.setButton("Go Back", function()
-                sortDlg.dismiss()
-                openContentsDialog()
-              end)
-              sortDlg.show()
-
-            elseif mp == 1 then
-              -- Select All / Deselect All Toggle Option
-              isAllSelected = not isAllSelected
-              for _, item in ipairs(currentList) do
-                item.selected = isAllSelected
-              end
-              contentDialog.dismiss()
-              openContentsDialog()
-              
-            elseif mp == 2 then
-              -- Extract All Option (Stays on screen)
-              showMessage("Extract All", "Extracting all archive contents successfully.", function()
-                openContentsDialog()
-              end)
-              
-            elseif mp == 3 then
-              -- Info Option
-              showArchiveInfo(path, function()
-                openContentsDialog()
-              end)
-            end
-          end
-          
-          moreDlg.setButton("Go Back", function()
-            moreDlg.dismiss()
-            openContentsDialog()
-          end)
-          moreDlg.show()
-        end)
-      end
-
-      contentDialog.show()
-    end
-
-    openContentsDialog()
-    return true
-  end)
-
-  if not ok then
-    showMessage("Archive Error", "The archive file could not be read or may have unsupported encryption:\n" .. tostring(result))
-  end
-end
-
-openBrowser = function(path)
-  local folder = File(path)
-
-  if not folder.exists() or not folder.isDirectory() then
-    showMessage("File Manager", "This folder is not available.")
-    return
-  end
-
-  currentPath = tostring(folder.getAbsolutePath())
-
-  local ok, files = pcall(function()
-    return folder.listFiles()
-  end)
-
-  if not ok or files == nil then
-    showMessage("File Manager", "Permission to read this folder was not granted, or the folder could not be read.")
-    return
-  end
-
-  local dirs = {}
-  local zips = {}
-
-  for i = 0, #files - 1 do
-    local f = files[i]
-    local name = tostring(f.getName())
-
-    if f.isDirectory() then
-      table.insert(dirs, {
-        name = name,
-        path = tostring(f.getAbsolutePath())
-      })
-    elseif isSupportedArchive(name) then
-      table.insert(zips, {
-        name = name,
-        path = tostring(f.getAbsolutePath())
-      })
-    end
-  end
-
-  table.sort(dirs, function(a, b)
-    return a.name:lower() < b.name:lower()
-  end)
-
-  table.sort(zips, function(a, b)
-    return a.name:lower() < b.name:lower()
-  end)
-
-  local items = {}
-  local actions = {}
-
-  for _, item in ipairs(dirs) do
-    table.insert(items, "Folder: " .. item.name)
-    table.insert(actions, {
-      type = "folder",
-      path = item.path
-    })
-  end
-
-  for _, item in ipairs(zips) do
-    table.insert(items, "Archive: " .. item.name)
-    table.insert(actions, {
-      type = "zip",
-      path = item.path
-    })
-  end
-
-  if browser then
-    pcall(function()
-      browser.dismiss()
-    end)
-  end
-
-  browser = LuaDialog()
-  local folderName = folder.getName()
-  if folderName == "" or folderName == "0" or currentPath == "/storage/emulated/0" then 
-    folderName = "Internal Storage" 
-  end
-  browser.setTitle(folderName)
-  browser.setItems(items)
-  browser.setButton("Go Back", function()
-    browser.dismiss()
-    local parentFile = folder.getParentFile()
-    if currentPath ~= "/storage/emulated/0" and parentFile and parentFile.exists() then
-      openBrowser(tostring(parentFile.getAbsolutePath()))
-    else
-      showSourceChooser()
-    end
-  end)
-  browser.show()
-
-  browser.onItemClick = function(l, v, p, i)
-    local selected = actions[p + 1]
-
-    if not selected then
-      return
-    end
-
-    if selected.type == "folder" then
-      openBrowser(selected.path)
-    elseif selected.type == "zip" then
-      browser.dismiss()
-      validateAndProcessArchive(selected.path)
-    end
-  end
-end
-
--- Get display name from URI
-local function getDisplayName(uri, ctx)
-  local name = nil
-  pcall(function()
-    local cursor = ctx.getContentResolver().query(uri, nil, nil, nil, nil)
-    if cursor then
-      local idx = cursor.getColumnIndex("_display_name")
-      if idx >= 0 and cursor.moveToFirst() then
-        name = tostring(cursor.getString(idx))
-      end
-      cursor.close()
-    end
-  end)
-  if not name then
-    name = tostring(uri)
-  end
-  return name
-end
-
--- Convert URI to path
-local function uriToPath(uri, ctx)
-  local uriStr = tostring(uri)
-  if uriStr:match("externalstorage") then
-    local DocumentsContract = luajava.bindClass("android.provider.DocumentsContract")
-    local docId = tostring(DocumentsContract.getDocumentId(uri))
-    local vol, rest = docId:match("^(.-):(.*)$")
-    if vol == "primary" then
-      return "/storage/emulated/0/" .. rest
-    end
-  end
-  local ins = ctx.getContentResolver().openInputStream(uri)
-  local tmp = File(ctx.getCacheDir(), "temp_selected_archive")
-  local out = FileOutputStream(tmp)
-  local buf = byte[8192]
-  local n = ins.read(buf)
-  while n ~= -1 do
-    out.write(buf, 0, n)
-    n = ins.read(buf)
-  end
-  out.close()
-  ins.close()
-  return tostring(tmp.getAbsolutePath())
-end
-
--- Open system file manager
-local function openSystemFileManager()
-  local Intent = luajava.bindClass("android.content.Intent")
-  local intent = Intent(Intent.ACTION_GET_CONTENT)
-  intent.setType("*/*")
-  intent.addCategory(Intent.CATEGORY_OPENABLE)
-
-  local ctx = activity or this
-  local ok, err = pcall(function()
-    ctx.startActivityForResult(intent, 4411)
-  end)
-
-  if not ok then
-    showMessage(
-      "File Manager",
-      "Could not open the file manager:\n" .. tostring(err) .. "\n\nOpening Device Folders instead."
-    )
-    openBrowser("/storage/emulated/0")
-  end
-end
-
--- Handle result from file manager
-function onActivityResult(requestCode, resultCode, data)
-  if requestCode == 4411 and resultCode == -1 and data then
-    local ctx = activity or this
-    local uri = data.getData()
-
-    local displayName = getDisplayName(uri, ctx)
-    if not isSupportedArchive(displayName) then
-      showMessage("Not Supported", "This file extension is not supported. Please select a valid archive file.")
-      return
-    end
-
-    local ok, path = pcall(uriToPath, uri, ctx)
-    if ok and path then
-      validateAndProcessArchive(path)
-    else
-      showMessage("File Manager", "Could not read the selected file:\n" .. tostring(path))
-    end
-  end
-end
-
--- Source chooser dialog
-showSourceChooser = function()
-  local chooser = LuaDialog()
-  chooser.setTitle("Choose Archive")
-  chooser.setItems({"File Manager", "Device Folders (Internal Storage)"})
-  chooser.setButton("Go Back", function()
-    chooser.dismiss()
-  end)
-  chooser.show()
-  chooser.onItemClick = function(l, v, p, i)
-    chooser.dismiss()
-    if p == 0 then
-      openSystemFileManager()
-    else
-      openBrowser("/storage/emulated/0")
-    end
-  end
-end
-
-local layout = {
-  LinearLayout,
-  orientation = "vertical",
-  padding = "24dp",
-  {
-    TextView,
-    text = "Archive Lens",
-    textSize = "24sp",
-    gravity = "center",
-    layout_width = "match_parent",
-    layout_height = "wrap_content",
-    layout_marginBottom = "12dp"
-  },
-  {
-    TextView,
-    text = "Welcome to Archive Lens.\nA powerful utility tool to easily browse, search, sort, extract, and inspect the contents of compressed files and archives directly on your device.",
-    textSize = "16sp",
-    layout_width = "match_parent",
-    layout_height = "wrap_content",
-    layout_marginBottom = "20dp"
-  },
-  {
-    Button,
-    text = "Choose File",
-    textSize = "16sp",
-    layout_width = "match_parent",
-    onClick = function()
-      showSourceChooser()
-    end
-  },
-  {
-    Button,
-    text = "About",
-    textSize = "16sp",
-    layout_width = "match_parent",
-    onClick = function()
-      showMessage(
-        "About Archive Lens",
-        "• Overview:\n" ..
-        "Archive Lens is a lightweight utility designed for inspecting compressed containers efficiently without full extraction.\n\n" ..
-        "• Supported Formats:\n" ..
-        "ZIP, JAR, APK, 7Z, TAR, GZIP, BZIP2, XZ, AR, ARJ, CPIO, Unix Dump, RAR, RAR5, CAB, ISO, and Zstandard.\n\n" ..
-        "• Supported Protection:\n" ..
-        "Handles standard AES-128, AES-256, and ZipCrypto encryption mechanisms.\n\n" ..
-        "• Capacity Limit:\n" ..
-        "Fully supports archive containers up to 2 GB in size.\n\n" ..
-        "• Accessibility Focus:\n" ..
-        "Tailored for TalkBack screen reader users with precise entry announcements.\n\n" ..
-        "• Creator Details:\n" ..
-        "Developed by " .. developer .. " for Mind tech official world."
-      )
-    end
-  },
-  {
-    Button,
-    text = "Exit",
-    textSize = "16sp",
-    layout_width = "match_parent",
-    onClick = function()
-      dlg.dismiss()
-    end
-  }
-}
-
-dlg = LuaDialog()
-dlg.setTitle(appTitle)
-dlg.setView(loadlayout(layout))
-dlg.show()
+/* Tools */
+function num(id){return parseFloat($('#'+id).value)}
+function fmt(n){return (Math.round(n*1e6)/1e6).toLocaleString('en-US')}
+var OUT='<div class="out" id="out" role="status" aria-live="polite"></div>';
+var G='<div class="row"><button class="p" id="go">';
+var T=[
+{n:'Calculator',d:'Add, subtract, multiply, divide',h:'<label for="e">Type a calculation, like 12*5+3</label><input id="e" autocomplete="off">'+G+'Calculate</button></div>',i:function(){$('#go').onclick=function(){var s=$('#e').value.replace(/×/g,'*').replace(/÷/g,'/').replace(/\s/g,'');if(!/^[0-9+\-*\/().%]+$/.test(s))return show('Use only numbers and + - * / ( ) %.');try{var r=Function('"use strict";return ('+s+')')();if(!isFinite(r))throw 0;show(s+' equals '+fmt(r))}catch(e){show('That calculation is not valid. Please try again.')}}}},
+{n:'Percentage',d:'Discounts and increases',h:'<label for="a">Number</label><input id="a" type="number" inputmode="decimal"><label for="b">Percent</label><input id="b" type="number" inputmode="decimal">'+G+'Calculate</button></div>',i:function(){$('#go').onclick=function(){var a=num('a'),b=num('b');if(isNaN(a)||isNaN(b))return show('Please fill both fields.');var p=a*b/100;show(fmt(b)+' percent of '+fmt(a)+' is '+fmt(p)+'.\nAfter discount: '+fmt(a-p)+'.\nAfter increase: '+fmt(a+p)+'.')}}},
+{n:'Unit converter',d:'Length, weight, temperature',h:'<label for="c">Type</label><select id="c"><option value="l">Length</option><option value="w">Weight</option><option value="t">Temperature</option></select><label for="v">Value</label><input id="v" type="number" inputmode="decimal"><label for="f">From</label><select id="f"></select><label for="to">To</label><select id="to"></select>'+G+'Convert</button></div>',i:function(){var U={l:{Meters:1,Kilometers:1000,Centimeters:.01,Miles:1609.344,Feet:.3048,Inches:.0254},w:{Kilograms:1,Grams:.001,Pounds:.45359237,Ounces:.0283495},t:{Celsius:1,Fahrenheit:1,Kelvin:1}};function fill(){var h=Object.keys(U[$('#c').value]).map(function(x){return'<option>'+x+'</option>'}).join('');$('#f').innerHTML=h;$('#to').innerHTML=h;$('#to').selectedIndex=1}$('#c').onchange=fill;fill();$('#go').onclick=function(){var v=num('v'),f=$('#f').value,t=$('#to').value,c=$('#c').value,r;if(isNaN(v))return show('Please enter a value.');if(c=='t'){var C=f=='Celsius'?v:f=='Kelvin'?v-273.15:(v-32)*5/9;r=t=='Celsius'?C:t=='Kelvin'?C+273.15:C*9/5+32}else r=v*U[c][f]/U[c][t];show(fmt(v)+' '+f+' equals '+fmt(r)+' '+t)}}},
+{n:'Age calculator',d:'Your exact age',h:'<label for="d">Date of birth</label><input id="d" type="date">'+G+'Find my age</button></div>',i:function(){$('#go').onclick=function(){var v=$('#d').value;if(!v)return show('Please choose a date of birth.');var b=new Date(v),n=new Date(),y=n.getFullYear()-b.getFullYear(),m=n.getMonth()-b.getMonth(),d=n.getDate()-b.getDate();if(d<0){m--;d+=new Date(n.getFullYear(),n.getMonth(),0).getDate()}if(m<0){y--;m+=12}if(y<0)return show('That date is in the future.');show('You are '+y+' years, '+m+' months and '+d+' days old.')}}},
+{n:'Loan EMI',d:'Monthly payment',h:'<label for="p">Loan amount</label><input id="p" type="number" inputmode="decimal"><label for="r">Yearly interest rate (%)</label><input id="r" type="number" inputmode="decimal"><label for="m">Months</label><input id="m" type="number" inputmode="numeric">'+G+'Calculate</button></div>',i:function(){$('#go').onclick=function(){var p=num('p'),r=num('r')/1200,n=num('m');if(isNaN(p)||isNaN(r)||isNaN(n)||n<=0)return show('Please fill every field correctly.');var e=r?p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1):p/n;show('Monthly payment: '+fmt(e)+'\nTotal paid: '+fmt(e*n)+'\nTotal interest: '+fmt(e*n-p))}}},
+{n:'Word counter',d:'Words, characters, sentences',h:'<label for="t">Type or paste your text</label><textarea id="t"></textarea>'+G+'Count</button></div>',i:function(){$('#go').onclick=function(){var t=$('#t').value,w=t.trim()?t.trim().split(/\s+/).length:0;show('Words: '+w+'\nCharacters: '+t.length+'\nCharacters without spaces: '+t.replace(/\s/g,'').length+'\nSentences: '+(t.match(/[.!?]+/g)||[]).length)}}},
+{n:'Read aloud',d:'Speak any text',h:'<label for="t">Text</label><textarea id="t"></textarea><label for="lg">Language</label><select id="lg"><option value="en-US">English</option><option value="hi-IN">Hindi</option><option value="ne-NP">Nepali</option></select><div class="row"><button class="p" id="go">Read aloud</button><button id="st">Stop</button></div>',i:function(){$('#go').onclick=function(){var t=$('#t').value;if(!t.trim())return show('Please type some text first.');if(!window.speechSynthesis)return show('Speech is not supported in this browser.');speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=$('#lg').value;speechSynthesis.speak(u);$('#out').textContent='Reading started.'};$('#st').onclick=function(){speechSynthesis.cancel();$('#out').textContent='Stopped.'}}},
+{n:'Password maker',d:'Strong random passwords',h:'<label for="n">Length (8 to 64)</label><input id="n" type="number" value="16" min="8" max="64" inputmode="numeric"><div class="row"><button class="p" id="go">Generate</button><button id="cp">Copy</button></div>',i:function(){var cur='';$('#go').onclick=function(){var n=Math.min(64,Math.max(8,num('n')||16)),c='abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*?',a=new Uint32Array(n);crypto.getRandomValues(a);cur=Array.from(a,function(x){return c[x%c.length]}).join('');var o=$('#out');o.textContent=cur;o.setAttribute('aria-label','Password generated: '+cur.split('').join(' '));talk('Password generated. Use the copy button.')};$('#cp').onclick=function(){if(!cur)return show('Generate a password first.');try{navigator.clipboard.writeText(cur).then(function(){$('#out').removeAttribute('aria-label');show('Copied.')},function(){show('Copy failed. Select the password and copy it.')})}catch(e){show('Copy failed.')}}}},
+{n:'Timer',d:'Countdown with minute alerts',h:'<label for="mm">Minutes</label><input id="mm" type="number" value="5" min="1" inputmode="numeric"><div class="row"><button class="p" id="go">Start</button><button id="st">Stop</button><button id="rm">Time left</button></div>',i:function(){var iv,end;function stop(){clearInterval(iv);iv=0}$('#go').onclick=function(){stop();var m=num('mm');if(!(m>0))return show('Please enter the minutes.');end=Date.now()+m*60000;show('Timer started for '+m+' minutes.');var last=m;iv=setInterval(function(){var l=Math.ceil((end-Date.now())/60000);if(end-Date.now()<=0){stop();show('Time is up!');if(navigator.vibrate)navigator.vibrate([400,200,400])}else if(l<last){last=l;show(l+' minutes left')}},1000)};$('#st').onclick=function(){stop();show('Timer stopped.')};$('#rm').onclick=function(){if(!iv)return show('No timer is running.');var s=Math.max(0,Math.round((end-Date.now())/1000));show(Math.floor(s/60)+' minutes and '+s%60+' seconds left')}}},
+{n:'Time and date',d:'What is the time now?',h:G+'What time is it?</button></div>',i:function(){$('#go').onclick=function(){var n=new Date();show(n.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\n'+n.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}))}}},
+{n:'Notes',d:'Saved on this phone',h:'<label for="t">Your note</label><textarea id="t"></textarea><div class="row"><button class="p" id="sv2">Save</button><button id="rd">Read note</button><button id="cl">Clear</button></div>',i:function(){try{$('#t').value=localStorage.getItem('ah-note')||''}catch(e){}$('#sv2').onclick=function(){try{localStorage.setItem('ah-note',$('#t').value);show('Note saved.')}catch(e){show('Could not save.')}};$('#rd').onclick=function(){show($('#t').value||'The note is empty.')};$('#cl').onclick=function(){$('#t').value='';try{localStorage.removeItem('ah-note')}catch(e){}show('Note cleared.')}}}
+];
+var cur=-1;
+function renderList(){var q=$('#q').value.trim().toLowerCase(),h='';T.forEach(function(t,i){if(q&&(t.n+' '+t.d).toLowerCase().indexOf(q)<0)return;h+='<li><button data-i="'+i+'" aria-pressed="'+(cur==i)+'">'+t.n+'<small>'+t.d+'</small></button></li>'});$('#list').innerHTML=h||'<li role="status">No tools found.</li>'}
+$('#q').oninput=renderList;
+$('#list').onclick=function(e){var b=e.target.closest('button');if(!b)return;var t=T[+b.dataset.i];cur=+b.dataset.i;if(window.speechSynthesis)speechSynthesis.cancel();var s=$('#tool');s.innerHTML='<h2 tabindex="-1" id="th2">'+t.n+'</h2><p class="mu">'+t.d+'</p>'+t.h+OUT;t.i();renderList();s.scrollIntoView();$('#th2').focus()};
+apply();renderList();route();
+</script>
+</body>
+</html>
